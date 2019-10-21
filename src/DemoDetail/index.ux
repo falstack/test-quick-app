@@ -1,0 +1,194 @@
+<template>
+  <div class="doc-page">
+    <div class="page-title-wrap">
+      <text class="page-title">{{componentName}}</text>
+    </div>
+    <div class="video justify-content-center">
+      <stack id="stackDemo01" class="flex-column video-container">
+        <video
+          class="flex-1 {{objectFitClass}}"
+          poster='http://misc.aotu.io/booxood/mobile-video/cover_900x500.jpg'
+          autoplay="false" onprepared="preparedfn" onstart="startfn" onpause="pausefn" onfinish="finishfn"
+          onerror="errorfn" onseeking="seekingfn" onseeked="seekedfn" ontimeupdate="timeupdatefn" id="video"
+          src='http://wxsnsdy.tc.qq.com/105/20210/snsdyvideodownload?filekey=30280201010421301f0201690402534804102ca905ce620b1241b726bc41dcff44e00204012882540400&bizid=1023&hy=SH&fileparam=302c020101042530230204136ffd93020457e3c4ff02024ef202031e8d7f02030f42400204045a320a0201000400'
+          controls="true"
+          muted="false"
+        ></video>
+        <div class="video-mask">
+          <text class="danmu">这是一条测试弹幕</text>
+        </div>
+      </stack>
+    </div>
+    <div class="item-container " style="flex-direction:column">
+      <div class="item-content">
+        <text class="item-content_title">是否添加覆盖物</text>
+        <switch class="switch" style="margin-left:120px" checked="false" onchange="onMulchSwitched"></switch>
+      </div>
+    </div>
+    <div class="item-container">
+      <div class="item-content">
+        <text class="item-content_title">选择组件 Object-fit 样式</text>
+        <select class="select" @change="changeOption">
+          <option class="option" for={{objectFitValues}} value="{{$item}}">{{$item}}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  import prompt from '@system.prompt'
+  import network from '@system.network'
+
+  export default {
+    private: {
+      componentName: 'video',
+      showmask: true,
+      showicon: true,
+      ignorenet: false,
+      showControls: true,
+      muted: false,
+      objectFitValues: [
+        "cover", "contain", "fill", "none", "scale-down"
+      ],
+      objectFitClass: 'cover'
+    },
+    onInit() {
+      console.log('on init')
+      this.$page.setTitleBar({ text: 'Video' })
+    },
+    onReady() {
+      console.log('on ready')
+      console.log(this.$root)
+    },
+    startVideo(e) {
+      if (e.usenet) {
+        // 非wifi情况下继续播放
+        this.ignorenet = true
+      }
+      this.networkstatus('video')
+    },
+    networkstatus() {
+      network.subscribe({
+        callback: function (data) {
+          if (data.type === 'wifi' || this.ignorenet) {
+            this.$element('video').start()
+            this.showmask = false
+          } else {
+            this.showmask = true
+            this.$element('video').pause()
+            this.showicon = false
+          }
+        }.bind(this)
+      })
+    },
+    onMulchSwitched(e) {
+      this.$element('stackDemo01').requestFullscreen({ screenOrientation: "landscape" })
+    },
+    changeOption(e) {
+      this.objectFitClass = e.newValue
+      prompt.showToast({
+        message: `object-fit切换为 ${e.newValue}`
+      })
+    }
+  }
+</script>
+
+<style>
+  .doc-page{
+    flex: 1;
+    flex-direction: column;
+    background-color: #fbf9fe;
+  }
+
+  .page-title-wrap {
+    padding-top: 50px;
+    padding-bottom: 80px;
+    justify-content: center;
+  }
+  .page-title{
+    padding-top: 30px;
+    padding-bottom: 30px;
+    padding-left: 40px;
+    padding-right: 40px;
+    border-color: #bbbbbb;
+    color: #bbbbbb;
+    border-bottom-width: 2px;
+  }
+
+  .item-container {
+    margin-bottom: 50px;
+    margin-right: 60px;
+    margin-left: 60px;
+    flex-direction: column;
+    margin-top: 20px;
+  }
+  .item-content {
+    flex-direction: column;
+    background-color: #ffffff;
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+
+  /* Flex */
+  .flex-1{
+    flex: 1;
+  }
+  .flex-column {
+    flex-direction: column;
+  }
+  .justify-content-center{
+    justify-content: center;
+  }
+.video-container {
+  position: relative;
+  width: 750px;
+  height: 350px;
+}
+
+.video-mask {
+  width: 100%;
+  height: 100%;
+  background-color: red;
+  opacity: 0.5;
+  pointer-events: none;
+  justify-content: flex-end;
+  align-items: flex-start;
+  z-index: 9999999999999999999999;
+}
+
+.video-mask .danmu {
+  color: #fff;
+  flex-grow: 1;
+  flex-shrink: 0;
+  text-align: right;
+  margin-left: 100%;
+  width: 100%;
+}
+
+.video {
+  width: 750px;
+  height: 400px;
+}
+
+.tip .continue {
+  padding: 15px 30px;
+  border: 1px solid #ffffff;
+  margin-top: 30px;
+  margin-bottom: 10px;
+  color: #ffffff;
+  border-radius: 30px;
+}
+
+.select {
+  border: 1px solid #333333;
+  border-radius: 5px;
+  margin-left: 20px;
+}
+
+.option {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 20px;
+}
+</style>
