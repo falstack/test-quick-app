@@ -14,13 +14,14 @@
           controls="false"
           muted="false"
         ></video>
-        <div class="video-mask">
-          <text class="danmu">这是一条测试弹幕</text>
+        <div class="danmu-wrap">
+          <div class="danmu-list" for="stack in danmuList">
+            <text class="danmu" for="{{stack}}" style="{{$item.style}}">{{$item.text}}</text>
+          </div>
         </div>
         <div class="video-control">
-          <switch class="switch" checked="false" onchange="onMulchSwitched">
-            {{ isFullScreen ? '全屏' : '退出全屏' }}
-          </switch>
+          <switch class="switch" checked="false" onchange="onMulchSwitched"></switch>
+          <switch class="switch" checked="false" onchange="toggleDanmu"></switch>
         </div>
       </stack>
     </div>
@@ -29,6 +30,8 @@
 
 <script>
   import network from '@system.network'
+  import Danmu from '../danmu'
+  import fakerData from '../data'
 
   export default {
     private: {
@@ -38,19 +41,58 @@
       ignorenet: false,
       isFullScreen: false,
       showControls: true,
+      drawComplete: false,
+      danmuManager: null,
+      danmuList: [[]],
       muted: false,
+      stopDanmu: false,
+      time: 0,
       objectFitValues: [
         "cover", "contain", "fill", "none", "scale-down"
       ],
       objectFitClass: 'cover'
     },
     onInit() {
-      console.log('on init')
       this.$page.setTitleBar({ text: 'Video' })
     },
-    onReady() {
-      console.log('on ready')
-      console.log(this.$root)
+    onShow() {
+      this.danmuManager = new Danmu({
+        width: this.$page.windowWidth,
+        height: this.$page.windowHeight,
+        data: fakerData
+      })
+      this.flashDanmu()
+    },
+    flashDanmu() {
+      setInterval(() => {
+        if (this.stopDanmu) {
+          return
+        }
+        this.time += 16
+        const newVal = this.danmuManager.flash(this.time / 1000, this.danmuList)
+        if (newVal !== null) {
+          this.danmuList = newVal
+        }
+        this.scrollDanmu()
+      }, 16)
+    },
+    scrollDanmu() {
+      this.danmuList.forEach((list, index) => {
+        list.forEach((item, subIndex) => {
+          item.left -= item.speed
+          item.leftFullscreen -= item.speedFullscreen
+          item.style = {
+            transform: `translateX(${item.left}px)`
+          }
+          item.fullscreenStyle = {
+            transform: `translateX(${item.leftFullscreen}px)`
+          }
+          this.danmuList[index][subIndex] = item
+        })
+      })
+    },
+    toggleDanmu() {
+      this.stopDanmu = !this.stopDanmu
     },
     startVideo(e) {
       if (e.usenet) {
@@ -60,9 +102,8 @@
       this.networkstatus('video')
     },
     onMulchSwitched(e) {
-      console.log(this.$element('stackDemo01'), e)
       if (this.isFullScreen) {
-        this.$element('stackDemo01').exitFullscreen()
+        this.$page.exitFullscreen()
       } else {
         this.$element('stackDemo01').requestFullscreen({ screenOrientation: "landscape" })
       }
@@ -137,20 +178,30 @@
   height: 350px;
 }
 
-.video-mask {
-  width: 100%;
+.danmu-wrap {
   height: 100%;
-  pointer-events: none;
-  justify-content: flex-end;
-  align-items: flex-start;
-  z-index: 9999999999999999999999;
-  background-color: red;
-  opacity: 0.5;
+  width: 100%;
+  background-color: transparent;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 }
 
-.video-mask .danmu {
+.danmu-list {
+  width: 100%;
+}
+
+.danmu-list .danmu {
+  font-size: 36px;
   color: #fff;
-  /*transform: translateX(100%);*/
+  lines: 1;
+  text-shadow: rgb(0, 0, 0) 1px 0px 1px, rgb(0, 0, 0) 0px 1px 1px, rgb(0, 0, 0) 0px -1px 1px, rgb(0, 0, 0) -1px 0px;
+}
+
+.video-control {
+  justify-content: flex-start;
+  align-items: flex-end;
+  height: 100%;
 }
 
 .video {
