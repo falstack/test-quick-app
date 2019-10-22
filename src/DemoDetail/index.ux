@@ -15,9 +15,9 @@
           muted="false"
         ></video>
         <div class="danmu-wrap">
-          <div class="danmu-list" for="stack in danmuList">
+          <stack class="danmu-list" for="stack in danmuList">
             <text class="danmu" for="{{stack}}" style="{{$item.style}}">{{$item.text}}</text>
-          </div>
+          </stack>
         </div>
         <div class="video-control">
           <switch class="switch" checked="false" onchange="onMulchSwitched"></switch>
@@ -195,7 +195,6 @@
   font-size: 36px;
   color: #fff;
   lines: 1;
-  text-shadow: rgb(0, 0, 0) 1px 0px 1px, rgb(0, 0, 0) 0px 1px 1px, rgb(0, 0, 0) 0px -1px 1px, rgb(0, 0, 0) -1px 0px;
 }
 
 .video-control {
