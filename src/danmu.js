@@ -84,16 +84,18 @@ export default class {
     }
     this.lastBeginId = result[0].id
     this.lastEndId = result[length - 1].id
-    result.forEach((newVal, i) => {
-      list.forEach((stack, index) => {
-        stack.forEach(oldVal => {
-          if (newVal.id === oldVal.id) {
-            oldVal.stack = index
-            result[i] = oldVal
-          }
+    if (list.length) {
+      result.forEach((newVal, i) => {
+        list.forEach((stack, index) => {
+          stack.forEach(oldVal => {
+            if (newVal.id === oldVal.id) {
+              oldVal.stack = index
+              result[i] = oldVal
+            }
+          })
         })
       })
-    })
+    }
     return this._filterData(result)
   }
 
@@ -119,7 +121,7 @@ export default class {
             id: meta[7],
             beginAt,
             endedAt: 0,
-            endAtFullscreen: 0,
+            endedAtFullscreen: 0,
             stack: -1,
             text,
             width: 0,
@@ -129,9 +131,6 @@ export default class {
             leftAt: 0,
             leftAtFullscreen: 0,
             style: {
-              transform: `translateX(100%)`
-            },
-            styleFullscreen: {
               transform: `translateX(100%)`
             }
           })
@@ -143,10 +142,25 @@ export default class {
 
   _filterData(data) {
     const { column, fullscreen } = this
-    if (column <= 1) {
-      return [data]
-    }
     const result = []
+    if (column <= 1) {
+      if (result.length) {
+        for (let i = 1; i < data.length; i++) {
+          if (fullscreen) {
+            if (result[result.length - 1].endedAtFullscreen < data[i].leftAtFullscreen) {
+              result.push(data[i])
+            }
+          } else {
+            if (result[result.length - 1].endedAt < data[i].leftAt) {
+              result.push(data[i])
+            }
+          }
+        }
+      } else {
+        result.push(data[0])
+      }
+      return [result]
+    }
     for (let i = 0; i < column; i++) {
       result.push([])
     }
