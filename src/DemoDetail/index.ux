@@ -6,17 +6,18 @@
     <div class="video justify-content-center">
       <stack id="stackDemo01" class="flex-column video-container">
         <video
+          id="video"
           class="flex-1 {{objectFitClass}}"
           poster='http://misc.aotu.io/booxood/mobile-video/cover_900x500.jpg'
-          autoplay="true" onprepared="preparedfn" onstart="startfn" onpause="pausefn" onfinish="finishfn"
-          onerror="errorfn" onseeking="seekingfn" onseeked="seekedfn" ontimeupdate="timeupdatefn" id="video"
           src='http://wxsnsdy.tc.qq.com/105/20210/snsdyvideodownload?filekey=30280201010421301f0201690402534804102ca905ce620b1241b726bc41dcff44e00204012882540400&bizid=1023&hy=SH&fileparam=302c020101042530230204136ffd93020457e3c4ff02024ef202031e8d7f02030f42400204045a320a0201000400'
+          autoplay="true"
           controls="false"
           muted="false"
+          ontimeupdate="handleVideoPlaying"
         ></video>
         <div class="danmu-wrap">
           <stack class="danmu-list" for="stack in danmuList">
-            <text class="danmu" for="{{stack}}" style="{{$item.style}}">{{$item.text}}</text>
+            <text class="danmu" onresize="renderDanmuItem($item)" for="{{stack}}" style="{{$item.style}}">{{$item.text}}</text>
           </stack>
         </div>
         <div class="video-control">
@@ -66,10 +67,10 @@
     flashDanmu() {
       requestAnimationFrame(() => {
         if (this.stopDanmu) {
+          this.flashDanmu()
           return
         }
-        this.time += 16
-        const newVal = this.danmuManager.flash(this.time / 1000, this.danmuList)
+        const newVal = this.danmuManager.flash(this.time, this.danmuList)
         if (newVal !== null) {
           this.danmuList = newVal
         }
@@ -80,20 +81,39 @@
     scrollDanmu() {
       this.danmuList.forEach((list, index) => {
         list.forEach((item, subIndex) => {
-          item.left -= item.speed
-          item.leftFullscreen -= item.speedFullscreen
-          item.style = {
-            transform: `translateX(${item.left}px)`
+          if (item.speed) {
+            item.left -= item.speed
+            item.style = {
+              transform: `translateX(${item.left}px)`
+            }
+            this.danmuList[index][subIndex] = item
           }
-          item.fullscreenStyle = {
-            transform: `translateX(${item.leftFullscreen}px)`
-          }
-          this.danmuList[index][subIndex] = item
         })
       })
     },
+    renderDanmuItem(danmu, evt) {
+      if (danmu.speed) {
+        return
+      }
+      const { offsetWidth } = evt
+      const speed = (512 + offsetWidth) / 4.5
+      danmu.left = offsetWidth
+      danmu.speed = Math.ceil(speed / 1000 * 16)
+      danmu.leftAt = this.$page.windowWidth / speed + danmu.beginAt
+      danmu.endedAt = (offsetWidth + this.$page.windowWidth) / speed + danmu.beginAt
+    },
     toggleDanmu() {
-      this.stopDanmu = !this.stopDanmu
+      const video = this.$element('video')
+      if (this.stopDanmu) {
+        this.stopDanmu = false
+        video.start()
+      } else {
+        this.stopDanmu = true
+        video.pause()
+      }
+    },
+    handleVideoPlaying({ currenttime }) {
+      this.time = currenttime
     },
     startVideo(e) {
       if (e.usenet) {
@@ -190,11 +210,14 @@
 
 .danmu-list {
   width: 100%;
+  height: 50px;
+  line-height: 50px;
+  justify-content: flex-end;
 }
 
 .danmu-list .danmu {
   font-size: 36px;
-  color: #fff;
+  color: red;
   lines: 1;
 }
 

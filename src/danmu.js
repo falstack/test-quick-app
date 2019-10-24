@@ -48,10 +48,9 @@ export default class {
     this.lastBeginId = result[0].id
     this.lastEndId = result[length - 1].id
     result.forEach((newVal, i) => {
-      list.forEach((stack, index) => {
+      list.forEach(stack => {
         stack.forEach(oldVal => {
           if (newVal.id === oldVal.id) {
-            oldVal.stack = index
             result[i] = oldVal
           }
         })
@@ -68,40 +67,29 @@ export default class {
     if (!this.width || !this.height || !this.data) {
       return
     }
-    const { duration, width, height } = this
+    const { duration } = this
     const result = []
     const dataArr = this.data.split('</source>')[1].split('<d p="')
-    const timePerWidth = duration / width
-    const timePerHeight = duration / height
     dataArr.forEach(item => {
       if (item) {
         const itemArr = item.split('">')
         const meta = itemArr.shift().split(',')
         if (meta[1] === '1') {
           const text = itemArr.join('').split('</d>')[0]
-          const textLength = this._computeTextLength(text)
-          const textWidth = textLength * 35
-          const textWidthFullscreen = textLength * 40
           const beginAt = +meta[0]
           const endedAt = beginAt + duration
 
           result.push({
+            id: meta[7],
             beginAt,
             endedAt,
-            leftAt: endedAt - timePerWidth * textWidth,
-            leftAtFullscreen: endedAt - timePerHeight * textWidthFullscreen,
-            speed: (width + textWidth) / duration / 1000 * 16,
-            speedFullscreen: (height + textWidthFullscreen) / duration / 1000 * 16,
-            id: meta[7],
             stack: -1,
             text,
-            left: width,
-            leftFullscreen: height,
+            width: 0,
+            speed: 0,
+            left: 0,
             style: {
-              transform: `translateX(${width}px)`
-            },
-            fullscreenStyle: {
-              transform: `translateX(${height}px)`
+              transform: `translateX(100%)`
             }
           })
         }
@@ -122,14 +110,19 @@ export default class {
     data.forEach(item => {
       if (item.stack !== -1) {
         result[item.stack].push(item)
-      } else {
+      }
+    })
+    data.forEach(item => {
+      if (item.stack === -1) {
         for (let i = 0; i < column; i++) {
           const line = result[i]
           if (!line || line.length <= 0) {
+            item.stack = i
             result[i].push(item)
             break
           }
           if (line[line.length -1].endedAt < item.leftAt) {
+            item.stack = i
             result[i].push(item)
             break
           }
