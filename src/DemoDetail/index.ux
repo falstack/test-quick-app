@@ -100,12 +100,14 @@
       const { windowWidth, windowHeight } = this.$page
       const { offsetWidth } = evt
       const speed = (512 + offsetWidth) / 4.5
+      danmu.width = offsetWidth
       danmu.left = offsetWidth
-      danmu.speed = Math.ceil(speed / 1000 * 16)
+      danmu.speed = speed / 1000 * 16
       danmu.leftAt = Math.ceil(windowWidth / speed + danmu.beginAt)
-      danmu.endedAt = Math.ceil(offsetWidth + windowWidth) / speed + danmu.beginAt
+      danmu.endedAt = Math.ceil((offsetWidth + windowWidth) / speed + danmu.beginAt)
       danmu.leftAtFullscreen = Math.ceil(windowHeight / speed + danmu.beginAt)
       danmu.endedAtFullscreen = Math.ceil((offsetWidth + windowHeight) / speed + danmu.beginAt)
+      danmu.rightAt = danmu.endedAt - danmu.leftAt + danmu.beginAt
       danmu.style = {
         transform: `translateX(${offsetWidth}px)`
       }

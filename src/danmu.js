@@ -127,7 +127,6 @@ export default class {
             width: 0,
             speed: 0,
             left: 0,
-            leftFullscreen: 0,
             leftAt: 0,
             leftAtFullscreen: 0,
             style: {
@@ -141,26 +140,8 @@ export default class {
   }
 
   _filterData(data) {
-    const { column, fullscreen } = this
+    const { column } = this
     const result = []
-    if (column <= 1) {
-      if (result.length) {
-        for (let i = 1; i < data.length; i++) {
-          if (fullscreen) {
-            if (result[result.length - 1].endedAtFullscreen < data[i].leftAtFullscreen) {
-              result.push(data[i])
-            }
-          } else {
-            if (result[result.length - 1].endedAt < data[i].leftAt) {
-              result.push(data[i])
-            }
-          }
-        }
-      } else {
-        result.push(data[0])
-      }
-      return [result]
-    }
     for (let i = 0; i < column; i++) {
       result.push([])
     }
@@ -172,25 +153,41 @@ export default class {
     data.forEach(item => {
       if (item.stack === -1) {
         for (let i = 0; i < column; i++) {
-          const line = result[i]
-          if (!line || line.length <= 0) {
+          const stack = result[i]
+          if (!stack || stack.length <= 0) {
             result[i].push(item)
             break
           }
-          if (fullscreen) {
-            if (line[line.length -1].endedAtFullscreen < item.leftAtFullscreen) {
-              result[i].push(item)
-              break
-            }
-          } else {
-            if (line[line.length -1].endedAt < item.leftAt) {
-              result[i].push(item)
-              break
-            }
+          if (this._isValidate(stack[stack.length - 1], item)) {
+            result[i].push(item)
+            break
           }
         }
       }
     })
     return result
+  }
+
+  /**
+   * 碰撞检测问题
+   * @param prev
+   * @param next
+   * @returns {boolean}
+   * @private
+   */
+  _isValidate(prev, next) {
+    if (prev.width > next.width && prev.rightAt < next.beginAt) {
+      return true
+    }
+    if (this.fullscreen) {
+      if (next.leftAtFullscreen > prev.endedAtFullscreen) {
+        return true
+      }
+    } else {
+      if (next.leftAt > prev.endedAt) {
+        return true
+      }
+    }
+    return false
   }
 }
