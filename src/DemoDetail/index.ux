@@ -17,7 +17,10 @@
         ></video>
         <div class="danmu-wrap">
           <stack class="danmu-list" for="stack in danmuList">
-            <text class="danmu" for="{{stack}}" style="{{$item.style}}">{{$item.text}}</text>
+            <stack class="danmu" for="{{stack}}" style="{{$item.style}}">
+              <text class="black">{{$item.text}}</text>
+              <text class="white">{{$item.text}}</text>
+            </stack>
           </stack>
           <stack class="danmu-gan">
             <text class="danmu" for="{{preRenderDanmu}}" onresize="renderDanmuItem($item)">{{$item.text}}</text>
@@ -235,8 +238,17 @@
 
 .danmu-list .danmu {
   font-size: 36px;
-  color: red;
   lines: 1;
+}
+
+.danmu-list .danmu .white {
+  color: #fff;
+}
+
+.danmu-list .danmu .black {
+  color: #000;
+  margin-left: 1px;
+  margin-top: 1px;
 }
 
 .video-control {
