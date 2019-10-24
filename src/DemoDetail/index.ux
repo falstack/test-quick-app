@@ -17,7 +17,10 @@
         ></video>
         <div class="danmu-wrap">
           <stack class="danmu-list" for="stack in danmuList">
-            <text class="danmu" onresize="renderDanmuItem($item)" for="{{stack}}" style="{{$item.style}}">{{$item.text}}</text>
+            <text class="danmu" for="{{stack}}" style="{{$item.style}}">{{$item.text}}</text>
+          </stack>
+          <stack class="danmu-gan">
+            <text class="danmu" for="{{preRenderDanmu}}" onresize="renderDanmuItem($item)">{{$item.text}}</text>
           </stack>
         </div>
         <div class="video-control">
@@ -45,6 +48,7 @@
       drawComplete: false,
       danmuManager: null,
       danmuList: [[]],
+      preRenderDanmu: [],
       muted: false,
       stopDanmu: false,
       time: 0,
@@ -70,6 +74,7 @@
           this.flashDanmu()
           return
         }
+        this.preRenderDanmu = this.danmuManager.preRender(this.time)
         const newVal = this.danmuManager.flash(this.time, this.danmuList)
         if (newVal !== null) {
           this.danmuList = newVal
@@ -92,15 +97,16 @@
       })
     },
     renderDanmuItem(danmu, evt) {
-      if (danmu.speed) {
-        return
-      }
+      const { windowWidth, windowHeight } = this.$page
       const { offsetWidth } = evt
       const speed = (512 + offsetWidth) / 4.5
       danmu.left = offsetWidth
       danmu.speed = Math.ceil(speed / 1000 * 16)
-      danmu.leftAt = this.$page.windowWidth / speed + danmu.beginAt
-      danmu.endedAt = (offsetWidth + this.$page.windowWidth) / speed + danmu.beginAt
+      danmu.leftAt = windowWidth / speed + danmu.beginAt
+      danmu.endedAt = (offsetWidth + windowWidth) / speed + danmu.beginAt
+      danmu.leftAtFullscreen = windowHeight / speed + danmu.beginAt
+      danmu.endedAtFullscreen = (offsetWidth + windowHeight) / speed + danmu.beginAt
+      this.danmuManager.prePatch(danmu)
     },
     toggleDanmu() {
       const video = this.$element('video')
@@ -122,13 +128,16 @@
       }
       this.networkstatus('video')
     },
-    onMulchSwitched(e) {
+    onMulchSwitched() {
       if (this.isFullScreen) {
         this.$page.exitFullscreen()
+        this.isFullScreen = false
+        this.danmuManager.toggleFullscreen(false)
       } else {
         this.$element('stackDemo01').requestFullscreen({ screenOrientation: "landscape" })
+        this.isFullScreen = true
+        this.danmuManager.toggleFullscreen(true)
       }
-      this.isFullScreen = !this.isFullScreen
     },
     networkstatus() {
       network.subscribe({
@@ -206,6 +215,10 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+}
+
+.danmu-gan {
+  visibility: hidden;
 }
 
 .danmu-list {
