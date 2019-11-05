@@ -50,7 +50,7 @@ export default class {
   prePatch(item) {
     const { danmu } = this
     for (let i = 0; i < danmu.length; i++) {
-      if (danmu.id === item.id) {
+      if (danmu[i].id === item.id) {
         this.danmu[i] = item
         break
       }

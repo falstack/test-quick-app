@@ -39,6 +39,8 @@
   import network from '@system.network'
   import Danmu from '../danmu'
   import fakerData from '../data'
+  import storage from '@system.storage'
+  import vibrator from '@system.vibrator'
 
   export default {
     private: {
@@ -70,6 +72,28 @@
         data: fakerData
       })
       this.flashDanmu()
+      storage.set({
+        key: 'A1',
+        value: 'V1',
+        success: function(data) {
+          console.log('set success')
+          storage.get({
+            key: 'A1',
+            success: function(data) {
+              console.log('get success', data)
+            },
+            fail: function(data, code) {
+              console.log(`get fail, code = ${code}`)
+            }
+          })
+        },
+        fail: function(data, code) {
+          console.log(`set fail, code = ${code}`)
+        }
+      })
+      vibrator.vibrate({
+        mode: 'long'
+      })
     },
     flashDanmu() {
       requestAnimationFrame(() => {
